@@ -30,8 +30,11 @@ func SendTextNotify(token, text string) (result string, err error) {
 		return
 	}
 
-	req, _ := http.NewRequestWithContext(context.Background(), "POST", "https://open.feishu.cn/open-apis/bot/v2/hook/"+token,
+	req, err := http.NewRequestWithContext(context.Background(), "POST", "https://open.feishu.cn/open-apis/bot/v2/hook/"+token,
 		bytes.NewReader(d))
+	if err != nil {
+		return
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
