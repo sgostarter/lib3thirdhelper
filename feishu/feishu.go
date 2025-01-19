@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
 )
 
@@ -17,7 +17,12 @@ type fsTextMessage struct {
 	Content *TextContent `json:"content"`
 }
 
-func SendTextNotify(token, text string) (result string, err error) {
+type fsResponse struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func SendTextNotify(token, text string) (errMessage string, err error) {
 	msg := &fsTextMessage{
 		MsgType: "text",
 		Content: &TextContent{
@@ -43,12 +48,20 @@ func SendTextNotify(token, text string) (result string, err error) {
 
 	defer resp.Body.Close()
 
-	d, err = io.ReadAll(resp.Body)
+	var fsResp fsResponse
+
+	err = json.NewDecoder(resp.Body).Decode(&fsResp)
 	if err != nil {
 		return
 	}
 
-	result = string(d)
+	if fsResp.Code != 0 {
+		err = fmt.Errorf("code:%d", fsResp.Code)
+
+		errMessage = fsResp.Msg
+
+		return
+	}
 
 	return
 }
